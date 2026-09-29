@@ -1,0 +1,244 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GİT! Türkçe Gramer Oyunu</title>
+<style>
+  :root {
+    --bg1:#7c3aed; --bg2:#06b6d4; --bg3:#f97316; --ink:#172033;
+    --card:rgba(255,255,255,.94); --good:#16a34a; --bad:#dc2626; --yellow:#facc15;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; min-height:100vh; font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+    color:var(--ink); overflow-x:hidden;
+    background:
+      radial-gradient(circle at 10% 10%, rgba(250,204,21,.85), transparent 22%),
+      radial-gradient(circle at 90% 20%, rgba(236,72,153,.7), transparent 24%),
+      radial-gradient(circle at 20% 90%, rgba(34,197,94,.6), transparent 24%),
+      linear-gradient(135deg,var(--bg1),var(--bg2) 48%,var(--bg3));
+    display:flex; align-items:center; justify-content:center; padding:24px;
+  }
+  .blob{position:fixed; border-radius:999px; filter:blur(1px); opacity:.28; pointer-events:none; animation:float 7s ease-in-out infinite}
+  .b1{width:180px;height:180px;background:#fff;left:-50px;top:10%}
+  .b2{width:250px;height:250px;background:#fde047;right:-80px;bottom:5%;animation-delay:-2s}
+  .b3{width:120px;height:120px;background:#fb7185;right:18%;top:-35px;animation-delay:-4s}
+  @keyframes float{50%{transform:translateY(20px) rotate(8deg)}}
+  .wrap{width:min(860px,100%); position:relative; z-index:2}
+  .topbar{display:flex;gap:12px;justify-content:space-between;align-items:center;margin-bottom:14px;color:white;font-weight:800;text-shadow:0 2px 8px #0003}
+  .pill{background:#ffffff26;border:1px solid #ffffff55;backdrop-filter:blur(10px);padding:10px 14px;border-radius:999px}
+  .card{background:var(--card); border:4px solid #fff; border-radius:30px; padding:clamp(22px,4vw,42px); box-shadow:0 24px 70px #0f172a55; text-align:center; position:relative; overflow:hidden}
+  .spark{position:absolute;font-size:26px;animation:spin 8s linear infinite;opacity:.75}
+  .s1{left:18px;top:18px} .s2{right:22px;top:26px;animation-direction:reverse} .s3{left:28px;bottom:24px;animation-delay:-3s}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  h1{margin:0 0 6px;font-size:clamp(32px,6vw,56px);letter-spacing:-1px}
+  .sub{margin:0 auto 24px;color:#526078;font-weight:700}
+  .questionLabel{display:inline-block;background:#111827;color:#fff;padding:7px 12px;border-radius:10px;font-size:13px;font-weight:900;letter-spacing:.08em;text-transform:uppercase}
+  .english{font-size:clamp(28px,5vw,48px);font-weight:900;line-height:1.12;margin:18px 0 22px;min-height:110px;display:flex;align-items:center;justify-content:center}
+  input{width:100%;font-size:clamp(20px,3vw,28px);padding:18px 20px;border-radius:18px;border:3px solid #cbd5e1;outline:none;text-align:center;font-weight:800;background:white;transition:.2s}
+  input:focus{border-color:#7c3aed;box-shadow:0 0 0 5px #7c3aed22}
+  input.good{border-color:var(--good);background:#f0fdf4}
+  input.bad{border-color:var(--bad);background:#fef2f2}
+  .actions{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:18px}
+  button{border:0;border-radius:16px;padding:14px 22px;font-weight:900;font-size:17px;cursor:pointer;transition:.15s transform,.15s filter;box-shadow:0 8px 18px #0f172a22}
+  button:hover{transform:translateY(-2px);filter:brightness(1.03)} button:active{transform:translateY(1px)}
+  .check{background:#111827;color:white}
+  .next{background:linear-gradient(90deg,#facc15,#fb923c);color:#3b2300}
+  .secondary{background:#e2e8f0;color:#334155}
+  .feedback{min-height:54px;margin-top:16px;font-size:19px;font-weight:900;display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap}
+  .answer{background:#ecfccb;border:2px dashed #65a30d;border-radius:14px;padding:10px 14px}
+  .progress{height:14px;background:#ffffff55;border-radius:99px;overflow:hidden;border:1px solid #ffffff77;margin-bottom:14px}
+  .bar{height:100%;width:0;background:linear-gradient(90deg,#fde047,#34d399,#38bdf8,#f472b6);transition:.35s}
+  .footer{text-align:center;color:#fff;font-weight:700;margin-top:12px;font-size:13px;opacity:.9}
+  .finish{display:none}
+  .finish h2{font-size:44px;margin:0 0 8px}
+  .bigscore{font-size:70px;font-weight:1000;line-height:1;margin:14px 0;background:linear-gradient(90deg,#7c3aed,#ec4899,#f97316);-webkit-background-clip:text;color:transparent}
+  .confetti{position:fixed;width:10px;height:18px;top:-20px;z-index:99;pointer-events:none;animation:fall 1.6s linear forwards}
+  @keyframes fall{to{transform:translateY(110vh) rotate(720deg);opacity:.9}}
+  @media (max-width:600px){.topbar{font-size:13px} .card{border-radius:22px} button{flex:1}}
+</style>
+</head>
+<body>
+<div class="blob b1"></div><div class="blob b2"></div><div class="blob b3"></div>
+<div class="wrap">
+  <div class="topbar">
+    <div class="pill">🎯 Puan: <span id="score">0</span></div>
+    <div class="pill">🔥 Seri: <span id="streak">0</span></div>
+    <div class="pill"><span id="pos">1</span>/<span id="total"></span></div>
+  </div>
+  <div class="progress"><div class="bar" id="bar"></div></div>
+
+  <section class="card" id="gameCard">
+    <div class="spark s1">✦</div><div class="spark s2">★</div><div class="spark s3">✿</div>
+    <h1>GİT! 🏃‍♀️💨</h1>
+    <p class="sub">İngilizceyi gör, Türkçesini yaz!</p>
+    <div class="questionLabel">Türkçesi nedir?</div>
+    <div class="english" id="english"></div>
+    <input id="answer" autocomplete="off" autocapitalize="sentences" spellcheck="false" placeholder="Türkçe cevabını buraya yaz…">
+    <div class="actions">
+      <button class="check" id="checkBtn">✓ Kontrol Et</button>
+      <button class="next" id="nextBtn">Devam Et ➜</button>
+      <button class="secondary" id="showBtn">💡 Cevabı Göster</button>
+    </div>
+    <div class="feedback" id="feedback"></div>
+  </section>
+
+  <section class="card finish" id="finishCard">
+    <h2>🎉 Oyun Bitti!</h2>
+    <div class="bigscore" id="finalScore">0</div>
+    <p id="finalText" class="sub"></p>
+    <button class="next" id="restartBtn">🔀 Tekrar Oyna</button>
+  </section>
+
+  <div class="footer">Enter = Kontrol Et • Doğru cevapta Enter = Devam Et • Sorular her oyunda karışır</div>
+</div>
+
+<script>
+const ORIGINAL = [{"en": "Go!", "tr": ["Git!"]}, {"en": "Don’t go!", "tr": ["Gitme!"]}, {"en": "Go! / Please go!", "tr": ["Gidin!"]}, {"en": "Don’t go!", "tr": ["Gitmeyin!"]}, {"en": "Let’s go.", "tr": ["Hadi gidelim."]}, {"en": "Let me go.", "tr": ["Ben gideyim."]}, {"en": "Let him/her go.", "tr": ["O gitsin."]}, {"en": "Let them go.", "tr": ["Onlar gitsinler."]}, {"en": "I’m going.", "tr": ["Gidiyorum."]}, {"en": "I’m not going.", "tr": ["Gitmiyorum."]}, {"en": "Are you going?", "tr": ["Gidiyor musun?"]}, {"en": "Where are you going?", "tr": ["Nereye gidiyorsun?"]}, {"en": "I’m going home.", "tr": ["Eve gidiyorum."]}, {"en": "I went.", "tr": ["Gittim."]}, {"en": "I didn’t go.", "tr": ["Gitmedim."]}, {"en": "Did you go?", "tr": ["Gittin mi?"]}, {"en": "We went yesterday.", "tr": ["Dün gittik."]}, {"en": "Where did you go?", "tr": ["Nereye gittin?"]}, {"en": "Apparently, he/she went.", "tr": ["Gitmiş."]}, {"en": "Apparently, I went.", "tr": ["Gitmişim."]}, {"en": "Apparently, he/she didn’t go.", "tr": ["Gitmemiş."]}, {"en": "Did he/she apparently go?", "tr": ["Gitmiş mi?"]}, {"en": "I’ll go.", "tr": ["Gideceğim."]}, {"en": "We’ll go.", "tr": ["Gideceğiz."]}, {"en": "I won’t go.", "tr": ["Gitmeyeceğim."]}, {"en": "Will you go?", "tr": ["Gidecek misin?"]}, {"en": "I’ll go tomorrow.", "tr": ["Yarın gideceğim."]}, {"en": "I go / I usually go.", "tr": ["Giderim."]}, {"en": "I go every day.", "tr": ["Her gün giderim."]}, {"en": "I don’t go.", "tr": ["Gitmem."]}, {"en": "Do you go? / Would you go?", "tr": ["Gider misin?"]}, {"en": "He/she usually goes on foot.", "tr": ["O genellikle yürüyerek gider."]}, {"en": "I can go.", "tr": ["Gidebilirim."]}, {"en": "I can’t go.", "tr": ["Gidemem."]}, {"en": "Can you go?", "tr": ["Gidebilir misin?"]}, {"en": "I may/can go tomorrow.", "tr": ["Yarın gidebilirim."]}, {"en": "We can go from here.", "tr": ["Buradan gidebiliriz."]}, {"en": "I should / must go.", "tr": ["Gitmeliyim."]}, {"en": "You should go.", "tr": ["Gitmelisin."]}, {"en": "You shouldn’t go.", "tr": ["Gitmemelisin."]}, {"en": "Should we go?", "tr": ["Gitmeli miyiz?"]}, {"en": "I should go now.", "tr": ["Artık gitmeliyim."]}, {"en": "I have to go.", "tr": ["Gitmek zorundayım."]}, {"en": "I need to go.", "tr": ["Gitmem gerekiyor.", "Gitmem lazım."]}, {"en": "It is necessary to go.", "tr": ["Gitmek gerek."]}, {"en": "You don’t need to go.", "tr": ["Gitmene gerek yok."]}, {"en": "If I go, I’ll call you.", "tr": ["Gidersem seni ararım."]}, {"en": "If you go, call me.", "tr": ["Gidersen beni ara."]}, {"en": "If you don’t go, it’ll be a problem.", "tr": ["Gitmezsen sorun olur."]}, {"en": "If I were you, I would go.", "tr": ["Ben olsam giderdim."]}, {"en": "When I go, I’ll call you.", "tr": ["Gittiğimde seni ararım."]}, {"en": "Call me when you go.", "tr": ["Gittiğinde beni ara."]}, {"en": "Call me when you get home.", "tr": ["Eve gittiğinde beni ara."]}, {"en": "When we went there, it was dark.", "tr": ["Oraya gittiğimizde hava karanlıktı."]}, {"en": "Call me when you get there.", "tr": ["Gidince beni ara."]}, {"en": "I’ll eat when I get home.", "tr": ["Eve gidince yemek yiyeceğim."]}, {"en": "I left when I saw him/her.", "tr": ["Onu görünce gittim."]}, {"en": "I’ll wait until you go.", "tr": ["Sen gidene kadar bekleyeceğim."]}, {"en": "We didn’t talk until we got home.", "tr": ["Eve gidene kadar konuşmadık."]}, {"en": "I won’t go until you come.", "tr": ["Sen gelinceye kadar gitmeyeceğim."]}, {"en": "Call me before you go.", "tr": ["Gitmeden önce beni ara."]}, {"en": "I drink coffee before going to work.", "tr": ["İşe gitmeden önce kahve içerim."]}, {"en": "Call me after you go.", "tr": ["Gittikten sonra beni ara."]}, {"en": "I slept after I got home.", "tr": ["Eve gittikten sonra uyudum."]}, {"en": "I saw him/her while I was going.", "tr": ["Giderken onu gördüm."]}, {"en": "I bought coffee on my way to work.", "tr": ["İşe giderken kahve aldım."]}, {"en": "Close the door when you leave.", "tr": ["Giderken kapıyı kapat."]}, {"en": "Finish this before leaving.", "tr": ["Gitmeden bunu bitir."]}, {"en": "He/she left without telling me.", "tr": ["Bana haber vermeden gitti."]}, {"en": "I went to work without eating.", "tr": ["Yemek yemeden işe gittim."]}, {"en": "I’ll go and have a look.", "tr": ["Gidip bakacağım."]}, {"en": "I went home and slept.", "tr": ["Eve gidip uyudum."]}, {"en": "I went to the market and bought bread.", "tr": ["Markete gidip ekmek aldım."]}, {"en": "I went on foot.", "tr": ["Yürüyerek gittim."]}, {"en": "He/she went running.", "tr": ["Koşarak gitti."]}, {"en": "He/she left laughing.", "tr": ["Gülerek gitti."]}, {"en": "I went to see you.", "tr": ["Seni görmek için gittim."]}, {"en": "I’ll go to do some shopping.", "tr": ["Alışveriş yapmak için gideceğim."]}, {"en": "I got ready to go.", "tr": ["Gitmek için hazırlandım."]}, {"en": "Although he/she went, he/she couldn’t see him/her.", "tr": ["Gitmesine rağmen onu göremedi."]}, {"en": "I want to go.", "tr": ["Gitmek istiyorum."]}, {"en": "I don’t want to go.", "tr": ["Gitmek istemiyorum."]}, {"en": "Would you like to go?", "tr": ["Gitmek ister misin?"]}, {"en": "I wanted to go home.", "tr": ["Eve gitmek istedim."]}, {"en": "I prefer to go.", "tr": ["Gitmeyi tercih ederim."]}, {"en": "I like going there.", "tr": ["Oraya gitmekten hoşlanıyorum."]}, {"en": "I’m afraid of going alone.", "tr": ["Yalnız gitmekten korkuyorum."]}, {"en": "I started going.", "tr": ["Gitmeye başladım."]}, {"en": "I continued going.", "tr": ["Gitmeye devam ettim."]}, {"en": "Going is nice.", "tr": ["Gitmek güzel."]}, {"en": "Going is difficult.", "tr": ["Gitmek zor."]}, {"en": "You need to go.", "tr": ["Gitmen gerekiyor."]}, {"en": "He/she needs to go.", "tr": ["Gitmesi gerekiyor."]}, {"en": "His/her departure made me sad.", "tr": ["Onun gidişi beni üzdü."]}, {"en": "It’s been two hours since he/she left.", "tr": ["Gideli iki saat oldu."]}, {"en": "I’m about to leave.", "tr": ["Gitmek üzereyim."]}, {"en": "Apparently, he/she is going to go.", "tr": ["Gidecekmiş."]}, {"en": "Apparently, he/she is going.", "tr": ["Gidiyormuş."]}, {"en": "Apparently, he/she used to go.", "tr": ["Gidermiş."]}, {"en": "I was going.", "tr": ["Gidiyordum."]}, {"en": "I was going to go.", "tr": ["Gidecektim."]}, {"en": "I used to go / I would go.", "tr": ["Giderdim."]}, {"en": "I should have gone.", "tr": ["Gitmeliydim."]}, {"en": "I could have gone.", "tr": ["Gidebilirdim."]}, {"en": "He/she may have gone.", "tr": ["Gitmiş olabilir."]}, {"en": "He/she may go.", "tr": ["Gidebilir."]}, {"en": "He/she must have gone.", "tr": ["Gitmiş olmalı."]}, {"en": "Maybe he/she will go.", "tr": ["Belki gider."]}, {"en": "He/she should/must have gone.", "tr": ["Gitmiş olmalıydı."]}, {"en": "If I had gone…", "tr": ["Gitmiş olsaydım…", "Gitmiş olsaydım..."]}, {"en": "I will have gone.", "tr": ["Gitmiş olacağım."]}, {"en": "I’ll have to go.", "tr": ["Gitmek zorunda kalacağım."]}, {"en": "I had to go.", "tr": ["Gitmek zorunda kaldım."]}];
+let questions = [];
+let index = 0, score = 0, streak = 0, checked = false, gotPointThisQuestion = false;
+
+const $ = id => document.getElementById(id);
+const english = $("english"), answer = $("answer"), feedback = $("feedback");
+const checkBtn = $("checkBtn"), nextBtn = $("nextBtn"), showBtn = $("showBtn");
+
+function shuffle(a) {
+  const x=[...a];
+  for(let i=x.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[x[i],x[j]]=[x[j],x[i]];}
+  return x;
+}
+
+function normalize(s) {
+  return s.toLocaleLowerCase("tr-TR")
+    .replace(/[’‘]/g,"'")
+    .replace(/…/g,"...")
+    .replace(/[.!?;,:"“”()]/g,"")
+    .replace(/\s+/g," ")
+    .trim();
+}
+
+function playTone(kind) {
+  try {
+    const Ctx = window.AudioContext || window.webkitAudioContext;
+    const ctx = new Ctx();
+    const now = ctx.currentTime;
+    const notes = kind==="good" ? [523.25,659.25,783.99] : [220,174.61];
+    notes.forEach((f,i)=>{
+      const o=ctx.createOscillator(), g=ctx.createGain();
+      o.type = kind==="good" ? "sine" : "square";
+      o.frequency.value=f;
+      g.gain.setValueAtTime(.0001, now+i*.09);
+      g.gain.exponentialRampToValueAtTime(.13, now+i*.09+.015);
+      g.gain.exponentialRampToValueAtTime(.0001, now+i*.09+.16);
+      o.connect(g); g.connect(ctx.destination);
+      o.start(now+i*.09); o.stop(now+i*.09+.18);
+    });
+  } catch(e) {}
+}
+
+function confetti() {
+  const colors=["#f43f5e","#facc15","#22c55e","#38bdf8","#a855f7","#fb923c"];
+  for(let i=0;i<42;i++){
+    const d=document.createElement("div");
+    d.className="confetti";
+    d.style.left=Math.random()*100+"vw";
+    d.style.background=colors[Math.floor(Math.random()*colors.length)];
+    d.style.transform=`rotate(${Math.random()*360}deg)`;
+    d.style.animationDelay=(Math.random()*.25)+"s";
+    d.style.animationDuration=(1.1+Math.random()*1.1)+"s";
+    document.body.appendChild(d);
+    setTimeout(()=>d.remove(),2400);
+  }
+}
+
+function render() {
+  if(index>=questions.length) return finish();
+  checked=false; gotPointThisQuestion=false;
+  const q=questions[index];
+  english.textContent=q.en;
+  answer.value=""; answer.className="";
+  feedback.innerHTML="";
+  $("pos").textContent=index+1;
+  $("total").textContent=questions.length;
+  $("bar").style.width=(index/questions.length*100)+"%";
+  answer.focus();
+}
+
+function check() {
+  if(index>=questions.length) return;
+  const q=questions[index];
+  const typed=normalize(answer.value);
+  if(!typed) {
+    feedback.innerHTML='<span style="color:#b45309">✍️ Önce cevabını yaz.</span>';
+    return;
+  }
+  const ok=q.tr.some(x=>normalize(x)===typed);
+  checked=true;
+  if(ok) {
+    answer.className="good";
+    feedback.innerHTML='<span style="color:#15803d">🎉 Doğru! Harika!</span>';
+    if(!gotPointThisQuestion) {
+      score += 10 + Math.min(streak,5)*2;
+      streak++;
+      gotPointThisQuestion=true;
+    }
+    $("score").textContent=score; $("streak").textContent=streak;
+    playTone("good"); confetti();
+  } else {
+    answer.className="bad";
+    streak=0; $("streak").textContent=streak;
+    feedback.innerHTML='<span style="color:#b91c1c">❌ Tekrar dene!</span>';
+    playTone("bad");
+  }
+}
+
+function showAnswer() {
+  const q=questions[index];
+  feedback.innerHTML='<span class="answer">✅ '+q.tr[0]+'</span>';
+  answer.className="";
+  streak=0; $("streak").textContent=0;
+}
+
+function next() {
+  index++;
+  render();
+}
+
+function finish() {
+  $("gameCard").style.display="none";
+  $("finishCard").style.display="block";
+  $("bar").style.width="100%";
+  $("finalScore").textContent=score+" puan";
+  const maxApprox=questions.length*20;
+  const ratio=score/Math.max(maxApprox,1);
+  $("finalText").textContent = ratio>.7 ? "Muhteşem! “gitmek” fiilinin pek çok yapısına hakimsin." :
+    ratio>.45 ? "Çok iyi! Bir tur daha oynarsan daha da güçlenecek." :
+    "Güzel başlangıç! Tekrar oynadıkça kalıplar hızla oturacak.";
+  confetti(); playTone("good");
+}
+
+function restart() {
+  questions=shuffle(ORIGINAL);
+  index=0; score=0; streak=0;
+  $("score").textContent=0; $("streak").textContent=0;
+  $("finishCard").style.display="none";
+  $("gameCard").style.display="block";
+  render();
+}
+
+checkBtn.addEventListener("click",check);
+nextBtn.addEventListener("click",next);
+showBtn.addEventListener("click",showAnswer);
+$("restartBtn").addEventListener("click",restart);
+answer.addEventListener("keydown",e=>{
+  if(e.key==="Enter") {
+    e.preventDefault();
+    if(checked && answer.classList.contains("good")) next();
+    else check();
+  }
+});
+restart();
+</script>
+</body>
+</html>
